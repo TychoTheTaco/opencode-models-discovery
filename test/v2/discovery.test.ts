@@ -66,7 +66,7 @@ describe("V2 provider discovery", () => {
     const inventory = await discoverInventory([{
       id: "local",
       package: "@opencode-ai/ai/providers/openai-compatible",
-      settings: { baseURL: "http://127.0.0.1:1234/v1", apiKey: "test-key" },
+      settings: { baseURL: "http://127.0.0.1:1234/v1", apiKey: "example-test-key" },
     }], options, fetcher)
 
     expect(fetcher).toHaveBeenCalledWith("http://127.0.0.1:1234/v1/models", expect.objectContaining({
@@ -111,8 +111,8 @@ describe("V2 provider discovery", () => {
     await discoverInventory([{
       id: "local",
       package: "@opencode-ai/ai/providers/openai-compatible",
-      apiKey: "managed-key",
-      settings: { baseURL: "http://127.0.0.1:1234/v1", apiKey: "configured-key" },
+      apiKey: "example-managed-key",
+      settings: { baseURL: "http://127.0.0.1:1234/v1", apiKey: "example-configured-key" },
     }], options, fetcher)
 
     expect(fetcher).toHaveBeenCalledWith("http://127.0.0.1:1234/v1/models", expect.objectContaining({

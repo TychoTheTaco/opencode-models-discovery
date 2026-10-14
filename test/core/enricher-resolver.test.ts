@@ -38,7 +38,7 @@ describe('shared enricher resolver', () => {
     })
 
     const enricher = await resolveModelInfoEnricher(
-      { baseURL: 'http://127.0.0.1:4000', apiKey: 'secret-key', fetcher },
+      { baseURL: 'http://127.0.0.1:4000', apiKey: 'example-api-key', fetcher },
       { format: ModelInfoFormat.LiteLLM },
     )
 

@@ -1437,7 +1437,7 @@ describe('ModelDiscovery Plugin', () => {
             name: 'AIProxy',
             options: {
               baseURL: 'https://aiproxy.example/api',
-              apiKey: 'provider-secret',
+              apiKey: 'example-provider-key',
               modelsDiscovery: {
                 enabled: true,
                 endpoint: '/api/models',

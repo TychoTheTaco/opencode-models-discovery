@@ -14,10 +14,10 @@ describe("resolveProviderCredential", () => {
 
     const key = await resolveProviderCredential(ctx, {
       id: "my-provider",
-      settings: { apiKey: "explicit-key" },
+      settings: { apiKey: "example-explicit-key" },
     })
 
-    expect(key).toBe("explicit-key")
+    expect(key).toBe("example-explicit-key")
     expect(ctx.integration?.connection?.active).not.toHaveBeenCalled()
   })
 
