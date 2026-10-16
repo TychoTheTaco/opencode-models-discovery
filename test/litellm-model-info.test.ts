@@ -16,6 +16,20 @@ describe('native LiteLLM enricher', () => {
     expect(enrich({ supports_vision: true }).modalities).toEqual({ input: ['text', 'image'], output: ['text'] })
   })
 
+  it('derives video input from supports_video_input', () => {
+    expect(enrich({ supports_video_input: true }).modalities).toEqual({ input: ['text', 'video'], output: ['text'] })
+  })
+
+  it('combines vision and video capability flags', () => {
+    expect(enrich({ supports_vision: true, supports_video_input: true }).modalities)
+      .toEqual({ input: ['text', 'image', 'video'], output: ['text'] })
+  })
+
+  it('prefers declared modalities over capability flags', () => {
+    expect(enrich({ modalities: { input: ['text'] }, supports_vision: true, supports_video_input: true }).modalities)
+      .toEqual({ input: ['text'], output: ['text'] })
+  })
+
   it('defaults a missing modality side to text', () => {
     expect(enrich({ modalities: { input: ['text', 'image'] } }).modalities)
       .toEqual({ input: ['text', 'image'], output: ['text'] })

@@ -95,9 +95,16 @@ function buildModalities(info: LiteLLMModelInfo): { input: string[]; output: str
   if (input || output) {
     return { input: input ?? ['text'], output: output ?? ['text'] }
   }
-  // Older LiteLLM deployments do not expose modalities; derive image input from supports_vision.
-  if (info.supports_vision === true) {
-    return { input: ['text', 'image'], output: ['text'] }
+  // Older LiteLLM deployments do not expose modalities; derive inputs from the capability flags.
+  if (info.supports_vision === true || info.supports_video_input === true) {
+    return {
+      input: [
+        'text',
+        ...(info.supports_vision === true ? ['image'] : []),
+        ...(info.supports_video_input === true ? ['video'] : []),
+      ],
+      output: ['text'],
+    }
   }
   return undefined
 }

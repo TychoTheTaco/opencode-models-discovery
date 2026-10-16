@@ -27,6 +27,7 @@ export interface LiteLLMModelInfo {
   supports_max_reasoning_effort?: boolean | null
   supported_openai_params?: string[] | null
   supports_vision?: boolean | null
+  supports_video_input?: boolean | null
   modalities?: {
     input?: string[] | null
     output?: string[] | null
