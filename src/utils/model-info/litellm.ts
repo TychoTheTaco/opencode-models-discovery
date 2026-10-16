@@ -1,6 +1,6 @@
 import type { LiteLLMModelInfo, LiteLLMModelInfoEntry } from '../../types'
 import type { ModelEnricher, ModelEnrichmentResult } from '../../core/model-enrichment'
-import type { NormalizedModelLimit } from '../../core/model-types'
+import { createModelLimits, type NormalizedModelLimit } from '../../core/model-types'
 
 function hasUsableNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0
@@ -132,6 +132,20 @@ function buildCost(info: LiteLLMModelInfo): Record<string, unknown> | undefined 
   }
 }
 
+function getExplicitOutputLimit(info: LiteLLMModelInfo, contextLimit: number | undefined): number | undefined {
+  if (hasUsableNumber(info.max_output_tokens)) {
+    return info.max_output_tokens
+  }
+  // LiteLLM documents max_tokens as a legacy parameter set to max_output_tokens if specified,
+  // falling back to max_input_tokens otherwise. If max_tokens is strictly less than the context
+  // limit, it represents an explicit output limit. If it equals or exceeds context, it is
+  // a duplicate of max_input_tokens or the total context window and should be bounded to default.
+  if (hasUsableNumber(info.max_tokens) && contextLimit !== undefined && info.max_tokens < contextLimit) {
+    return info.max_tokens
+  }
+  return undefined
+}
+
 function getLiteLLMModelInfo(entry: LiteLLMModelInfoEntry | undefined): ModelEnrichmentResult {
   const info = entry?.model_info
   if (!info) return {}
@@ -151,14 +165,14 @@ function getLiteLLMModelInfo(entry: LiteLLMModelInfoEntry | undefined): ModelEnr
     result.modalities = modalities
   }
 
-  const contextLimit = hasUsableNumber(info.max_input_tokens) ? info.max_input_tokens : info.max_tokens
-  const outputLimit = hasUsableNumber(info.max_output_tokens) ? info.max_output_tokens : info.max_tokens
-  if (hasUsableNumber(contextLimit) && hasUsableNumber(outputLimit)) {
-    result.limit = {
-      context: contextLimit,
-      input: hasUsableNumber(info.max_input_tokens) ? info.max_input_tokens : undefined,
-      output: outputLimit,
-    }
+  const contextLimit = hasUsableNumber(info.max_input_tokens)
+    ? info.max_input_tokens
+    : (hasUsableNumber(info.max_tokens) ? info.max_tokens : undefined)
+  const inputLimit = hasUsableNumber(info.max_input_tokens) ? info.max_input_tokens : undefined
+  const explicitOutput = getExplicitOutputLimit(info, contextLimit)
+  const limits = createModelLimits(contextLimit, explicitOutput, inputLimit)
+  if (limits) {
+    result.limit = limits
   }
 
   if (info.supports_reasoning === true) {
