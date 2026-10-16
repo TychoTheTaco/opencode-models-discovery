@@ -195,8 +195,8 @@ describe("V2 Cache Operations RPC", () => {
         version: 1,
         fetchedAt: new Date().toISOString(),
         identity: { providerID: "provider-a", baseURL: "http://127.0.0.1:1234/v1", endpoint: "/v1/models" },
-        rawModels: [{ id: "m1", apiKey: "raw-secret", nested: { authorization: "Bearer raw-secret" } }],
-        enrichments: { m1: { token: "raw-secret" } },
+        rawModels: [{ id: "m1", apiKey: "example-raw-secret", nested: { authorization: "Bearer example-raw-secret" } }],
+        enrichments: { m1: { token: "example-raw-secret" } },
       })
 
       try {
@@ -204,7 +204,7 @@ describe("V2 Cache Operations RPC", () => {
         const status = rpcHandlers.status as (input?: unknown) => Promise<RpcStatusOutput>
         const result = await status({ providerID: "provider-a", rawCache: true })
         const serialized = JSON.stringify(result)
-        expect(serialized).not.toContain("raw-secret")
+        expect(serialized).not.toContain("example-raw-secret")
         expect(serialized).not.toContain("apiKey")
         expect(serialized).not.toContain("authorization")
       } finally {

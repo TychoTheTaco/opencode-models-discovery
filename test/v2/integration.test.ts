@@ -38,7 +38,7 @@ describe("V2 local OpenAI-compatible integration", () => {
       const provider = {
         id: "local",
         package: "@opencode-ai/ai/providers/openai-compatible",
-        apiKey: "integration-secret",
+        apiKey: "example-integration-key",
         settings: { baseURL: mock.baseURL },
       }
       const discovery = new Map([["local", parseProviderDiscoveryOptions({ enabled: true })!]])
@@ -46,18 +46,18 @@ describe("V2 local OpenAI-compatible integration", () => {
       const model = inventory.get("local")?.get("remote/model-alpha")
 
       expect(model).toMatchObject({ id: "remote/model-alpha", modelID: "remote/model-alpha" })
-      expect(mock.requests[0]).toMatchObject({ path: "/v1/models", authorization: "Bearer integration-secret" })
+      expect(mock.requests[0]).toMatchObject({ path: "/v1/models", authorization: "Bearer example-integration-key" })
 
       const response = await fetch(`${mock.baseURL}/chat/completions`, {
         method: "POST",
-        headers: { authorization: "Bearer integration-secret", "content-type": "application/json" },
+        headers: { authorization: "Bearer example-integration-key", "content-type": "application/json" },
         body: JSON.stringify({ model: model?.modelID, messages: [{ role: "user", content: "hello" }] }),
       })
       expect(response.ok).toBe(true)
       expect(await response.json()).toMatchObject({ model: "remote/model-alpha" })
       expect(mock.requests[1]).toMatchObject({
         path: "/v1/chat/completions",
-        authorization: "Bearer integration-secret",
+        authorization: "Bearer example-integration-key",
         body: JSON.stringify({ model: "remote/model-alpha", messages: [{ role: "user", content: "hello" }] }),
       })
     } finally {

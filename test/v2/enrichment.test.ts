@@ -143,7 +143,7 @@ describe("V2 provider discovery with metadata enrichment", () => {
       const inventory = await discoverInventory([{
         id: "aiproxy",
         package: "aisdk:@ai-sdk/openai",
-        apiKey: "provider-secret",
+        apiKey: "example-provider-key",
         settings: { baseURL: "https://aiproxy.example/api" },
       }], options, providerFetcher as unknown as typeof fetch)
 

@@ -79,7 +79,7 @@ describe("V2 provider controller", () => {
       get: vi.fn().mockReturnValue({
         provider: {
           id: "local",
-          settings: { baseURL: "http://explicit.example/v1", apiKey: "explicit-secret" },
+          settings: { baseURL: "http://explicit.example/v1", apiKey: "example-explicit-key" },
           integrationID: "explicit.integration",
           activation: "disabled",
         },
