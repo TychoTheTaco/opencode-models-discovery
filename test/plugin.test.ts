@@ -623,7 +623,7 @@ describe('ModelDiscovery Plugin', () => {
       expect(config.provider.test.models['chat-model']).toEqual({
         id: 'chat-model',
         name: 'Chat Model',
-        limit: { context: 32768, output: 32768 },
+        limit: { context: 32768, output: 32000 },
         modalities: { input: ['text'], output: ['text'] },
         variants: { custom: { reasoningEffort: 'high' } },
       })
@@ -667,7 +667,7 @@ describe('ModelDiscovery Plugin', () => {
       expect(state?.models).toEqual({
         'chat-model': expect.objectContaining({
           id: 'chat-model',
-          limit: { context: 32768, output: 32768 },
+          limit: { context: 32768, output: 32000 },
         }),
       })
       expect(state?.models['embedding-model']).toBeUndefined()
@@ -687,7 +687,7 @@ describe('ModelDiscovery Plugin', () => {
       mockFetch.mockClear()
       await pluginHooks.config(secondConfig)
 
-      expect(secondConfig.provider.cached.models['chat-model'].limit).toEqual({ context: 32768, output: 32768 })
+      expect(secondConfig.provider.cached.models['chat-model'].limit).toEqual({ context: 32768, output: 32000 })
       expect(mockFetch).not.toHaveBeenCalled()
     })
 
