@@ -29,13 +29,15 @@ Originally inspired by [opencode-lmstudio](https://github.com/agustif/opencode-l
 OpenCode v2 uses **`plugins`** (an array of package names) and **`providers`** (a map). Configure discovery under `providers.<id>.settings.modelsDiscovery`; it runs only when `enabled` is explicitly `true`. OpenCode v1 instead uses `plugin`, `provider`, and `options` (see [OpenCode v1 quick start](#opencode-v1-quick-start)).
 
 Add the plugin package to your OpenCode v2 `opencode.json`. OpenCode resolves
-and loads the package automatically:
+and loads the package automatically.
+
+> **Note on Pre-releases**: During Release Candidate testing, use `"opencode-models-discovery@rc"` (or pin to a specific release like `"opencode-models-discovery@2.0.0-rc.2"`). Once `v2.0.0` is published to `latest`, `"opencode-models-discovery@2.0.0"` and `"opencode-models-discovery@latest"` will resolve directly.
 
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
   "plugins": [
-    "opencode-models-discovery@2.0.0"
+    "opencode-models-discovery@rc"
   ],
   "providers": {
     "gateway-custom": {

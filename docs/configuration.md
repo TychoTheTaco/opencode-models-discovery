@@ -10,11 +10,13 @@ For a step-by-step conversion between the two configuration formats, see [Migrat
 
 OpenCode v2 uses `plugins` and `providers`. The plugin can be declared directly as a package name in `plugins`. Discovery configuration is read from `providers.<id>.settings.modelsDiscovery`; it is not read from `provider.<id>.options.modelsDiscovery` or `plugins[].options.providers`.
 
+> **Note on Pre-releases**: During Release Candidate testing, configure `"opencode-models-discovery@rc"` (or pin to `"opencode-models-discovery@2.0.0-rc.2"`). Once `v2.0.0` is published to `latest`, `"opencode-models-discovery@2.0.0"` or `"opencode-models-discovery@latest"` will resolve directly.
+
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
   "plugins": [
-    "opencode-models-discovery@2.0.0"
+    "opencode-models-discovery@rc"
   ],
   "providers": {
     "lmstudio": {
