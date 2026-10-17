@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { type ConfiguredProvider, type DiscoveredV2Model, type Inventory } from "./catalog.js"
 import { type ProviderDiscoveryOptions } from "./provider-config.js"
 import { mapToDiscoveredV2Model } from "../core/model-mapper.js"
@@ -5,6 +6,30 @@ import { discoverModelDrafts } from "../core/discovery-pipeline.js"
 import type { ModelEnrichmentResult, ModelEnricher } from "../core/model-enrichment.js"
 import { createDiscoveryCacheEntry, discoveryCacheKey, readDiscoveryCache, writeDiscoveryCache, type DiscoveryCacheBackend, type DiscoveryCacheEntry } from "../core/discovery-cache.js"
 import { resolveModelInfoEnricher } from "../core/enricher-resolver.js"
+
+export interface DiscoveryLogger {
+  warn(message: string, context?: Record<string, unknown>): void
+  info?(message: string, context?: Record<string, unknown>): void
+  debug?(message: string, context?: Record<string, unknown>): void
+  error?(message: string, context?: Record<string, unknown>): void
+}
+
+const defaultLogger: DiscoveryLogger = {
+  warn(message, context) {
+    if (context && Object.keys(context).length > 0) {
+      console.warn(`[opencode-models-discovery] ${message}`, context)
+    } else {
+      console.warn(`[opencode-models-discovery] ${message}`)
+    }
+  },
+  info(message, context) {
+    if (context && Object.keys(context).length > 0) {
+      console.info(`[opencode-models-discovery] ${message}`, context)
+    } else {
+      console.info(`[opencode-models-discovery] ${message}`)
+    }
+  },
+}
 
 export interface CatalogProvider extends ConfiguredProvider {
   /** Ephemeral request credential resolved by the plugin refresh orchestration. */
@@ -24,16 +49,22 @@ export async function discoverInventory(
   discovery: ReadonlyMap<string, ProviderDiscoveryOptions>,
   fetcher: typeof fetch = fetch,
   storage?: DiscoveryCacheBackend,
-  options?: { readonly force?: boolean },
+  options?: { readonly force?: boolean; readonly logger?: DiscoveryLogger },
 ): Promise<Inventory> {
   const inventory: Inventory = new Map()
+  const logger = options?.logger ?? defaultLogger
 
   await Promise.all(providers.map(async (provider) => {
     const config = discovery.get(provider.id)
     if (!config) return
 
     const baseURL = typeof provider.settings.baseURL === "string" ? provider.settings.baseURL : undefined
-    if (!baseURL) return
+    if (!baseURL) {
+      logger.warn(`Model discovery skipped for provider "${provider.id}": missing or invalid settings.baseURL`, {
+        provider: provider.id,
+      })
+      return
+    }
 
     const cacheConfig = config.cache
     const cacheSupported = cacheConfig?.enabled === true && storage !== undefined
@@ -75,6 +106,10 @@ export async function discoverInventory(
             apiKey: resolvedApiKey,
             providerName: provider.id,
             fetcher,
+            logger: {
+              warn: (message, context) => logger.warn(message, context),
+              info: (message, context) => logger.info?.(message, context),
+            },
           }, {
             format: config.modelInfoFormat,
             endpoint: config.modelInfoEndpoint,
@@ -83,10 +118,26 @@ export async function discoverInventory(
           }),
         ])
 
-        if (!modelsResponse.ok) return
+        if (!modelsResponse.ok) {
+          logger.warn(`Model discovery request failed for provider "${provider.id}"`, {
+            provider: provider.id,
+            url,
+            status: modelsResponse.status,
+            statusText: modelsResponse.statusText,
+          })
+          return
+        }
 
         const payload = await modelsResponse.json() as { data?: unknown }
-        if (!Array.isArray(payload?.data)) return
+        if (!Array.isArray(payload?.data)) {
+          logger.warn(`Model discovery returned invalid payload for provider "${provider.id}": expected array in "data" property`, {
+            provider: provider.id,
+            url,
+            payloadType: typeof payload,
+            keys: payload && typeof payload === "object" && !Array.isArray(payload) ? Object.keys(payload) : undefined,
+          })
+          return
+        }
         rawModels = payload.data
         enricher = resolvedEnricher
       }
@@ -124,7 +175,12 @@ export async function discoverInventory(
                 !!model && typeof model === "object" && !Array.isArray(model) && typeof (model as Record<string, unknown>).id === "string"
               ), enrichments))
         }
-    } catch {
+    } catch (error) {
+      logger.warn(`Model discovery error for provider "${provider.id}"`, {
+        provider: provider.id,
+        url,
+        error: error instanceof Error ? error.message : String(error),
+      })
       // Network and parsing failures are non-fatal; existing discovered models remain untouched.
     }
   }))
