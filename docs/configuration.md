@@ -57,6 +57,22 @@ Optionally, you can set `providers.<id>.settings.integrationID` if you want a pr
 
 The V2 adapter does not use the V1 persisted disk-cache format or V1 XDG auth-store fallback. V2 caching is disabled by default. When `modelsDiscovery.cache.enabled` is `true`, V2 stores the raw model-list response and enrichment results through the host-provided `ctx.storage` API. `ttlSeconds` defaults to `86400` seconds (24 hours). The `models_discovery_status` tool accepts `rawCache: true` to include cached raw models and enrichments in its report. The V2 adapter also provides the native TUI commands `/models-discovery-refresh` and `/models-discovery-console`, plus the `models_discovery_refresh` and `models_discovery_status` agent tools. `/models-discovery-console` opens a unified console for browsing Providers → models → structured model metadata and for inspecting or clearing caches. Use `/models-discovery-console status --provider hyy` to filter the browser to one Provider. Per-model overrides use the `overrides:<providerID>:<modelID>` storage namespace and are independent from discovery cache clearing. After rebuilding a local plugin, restart the OpenCode v2 background service with `opencode service restart`.
 
+### Hot-reloading and Deleting Settings in OpenCode v2
+
+OpenCode v2 watches `opencode.json` and emits `config.updated` lifecycle events when the file changes. The plugin subscribes to these events and automatically refreshes provider configurations and discovered models.
+
+> **Important (Host In-Memory Merge Behavior)**:
+> In current OpenCode v2 versions, the host merges updated provider `settings` into its in-memory provider state rather than replacing the settings object:
+> - **Modifying setting values** (e.g. changing `"smartModelName": true` to `"smartModelName": false`): The host overwrites the setting in memory with the new value, and discovery refreshes immediately with the new setting.
+> - **Deleting setting keys** (e.g. removing `"smartModelName"` entirely): Because the key is absent in the updated file, the host's in-memory merge does not remove the existing key. `ctx.provider.list()` continues to return the previously loaded setting.
+>
+> **Best Practices**:
+> 1. To disable a previously configured feature (such as `smartModelName` or `cache.enabled`), explicitly configure `"smartModelName": false` instead of deleting the property.
+> 2. If you delete settings keys and want in-memory provider configurations to reset to default values, restart the OpenCode background service:
+>    ```bash
+>    opencode service restart
+>    ```
+
 ## OpenCode v1 configuration
 
 The remainder of this guide documents the OpenCode v1 adapter. Use `provider.<name>.options.modelsDiscovery` for provider-specific behavior. This is the supported provider-level configuration boundary for OpenCode v1.
