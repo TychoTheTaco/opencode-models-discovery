@@ -169,16 +169,20 @@ export async function setupV2(ctx: Plugin.Context): Promise<() => void> {
   let activeRefresh: Promise<RefreshResult> | undefined
   let pendingRefreshForce = false
 
-  const refreshFromCurrentConfig = (force?: boolean): Promise<RefreshResult> => {
+  const refreshFromCurrentConfig = (force?: boolean, reloadProviderConfig = false): Promise<RefreshResult> => {
     if (force) pendingRefreshForce = true
     if (activeRefresh) {
-      return activeRefresh.then(() => refreshFromCurrentConfig(pendingRefreshForce))
+      return activeRefresh.then(() => refreshFromCurrentConfig(pendingRefreshForce, reloadProviderConfig))
     }
     const runForce = force || pendingRefreshForce
     pendingRefreshForce = false
     activeRefresh = (async () => {
       try {
-        await ctx.provider.reload()
+        // Configuration events update the host provider registry asynchronously, so
+        // reload it before listing providers. A normal discovery refresh must not do
+        // this first: the host can rebuild its catalog with an empty inventory while
+        // the new models request is still in flight, causing a transient 404.
+        if (reloadProviderConfig) await ctx.provider.reload()
         await syncConfiguredProviders()
         return await refreshInventoryInternal(runForce)
       } finally {
@@ -447,7 +451,7 @@ export async function setupV2(ctx: Plugin.Context): Promise<() => void> {
             // Configuration and credential updates are delivered independently from the provider
             // registry. Reload the registry first so provider.list() observes the
             // new state before rebuilding the discovery inventory.
-            await refreshFromCurrentConfig()
+            await refreshFromCurrentConfig(undefined, true)
           } catch {
             if (!abort.signal.aborted) {
               // should not happen, but if it does, we don't want to crash the plugin
