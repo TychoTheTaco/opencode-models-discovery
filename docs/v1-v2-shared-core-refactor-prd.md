@@ -325,7 +325,7 @@ Owner resolution has been unified into `resolveModelOwner` in `src/core/model-na
 
 ### 5. V1 and V2 still duplicate model-info enricher resolution (Resolved in Phase 5)
 
-Enricher resolution has been extracted into `resolveModelInfoEnricher` in `src/core/enricher-resolver.ts`. Both V1 and V2 adapters share the exact same resolution rules for static index formats (`models.dev`, `aiproxy`), inline/zero-request formats (`bifrost`, `vllm`, `llama-swap`, `omniroute`), and remote provider endpoints (`litellm`, `lmstudio`). Credentials and transport bindings remain host-owned while format handling is 100% unified.
+Enricher resolution has been extracted into `resolveModelInfoEnricher` in `src/core/enricher-resolver.ts`. Both V1 and V2 adapters share the exact same resolution rules for static index formats (`models.dev`, `aiproxy`), inline/zero-request formats (`bifrost`, `vllm`, `llama-swap`, `omniroute`, `openrouter`), and remote provider endpoints (`litellm`, `lmstudio`). Credentials and transport bindings remain host-owned while format handling is 100% unified.
 
 ### 6. Existing parity tests do not cover both complete adapter projections (Resolved in Phase 5)
 

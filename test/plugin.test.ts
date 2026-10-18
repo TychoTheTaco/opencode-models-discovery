@@ -281,6 +281,7 @@ describe('ModelDiscovery Plugin', () => {
         expect(config.command['models-discovery:config'].template).toContain('modelInfoFormat="lmstudio"')
         expect(config.command['models-discovery:config'].template).toContain('modelInfoFormat="llama-swap"')
         expect(config.command['models-discovery:config'].template).toContain('modelInfoFormat="omniroute"')
+        expect(config.command['models-discovery:config'].template).toContain('modelInfoFormat="openrouter"')
         expect(config.command['models-discovery:config'].template).toContain('max_model_len')
         expect(config.command['models-discovery:config'].template).toContain('restart opencode')
 
