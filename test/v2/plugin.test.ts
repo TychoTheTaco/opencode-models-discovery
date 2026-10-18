@@ -71,7 +71,7 @@ describe("V2 plugin entrypoint", () => {
       expect(ctx.integration.transform).toHaveBeenCalledTimes(1)
       expect(ctx.provider.transform).toHaveBeenCalledTimes(1)
       expect(ctx.integration.reload).toHaveBeenCalledTimes(1)
-      expect(ctx.provider.reload).toHaveBeenCalledTimes(2)
+      expect(ctx.provider.reload).toHaveBeenCalledTimes(1)
       expect(fetcher).toHaveBeenCalledTimes(1)
     } finally {
       fetcher.mockRestore()
@@ -197,7 +197,7 @@ describe("V2 plugin entrypoint", () => {
         transform: vi.fn().mockImplementation(async (callback) => callback({ get: vi.fn().mockReturnValue(undefined), add: vi.fn(), update: vi.fn(), models: { set: vi.fn() } })),
         reload: vi.fn().mockImplementation(async () => {
           providerReloads += 1
-          if (providerReloads >= 3) {
+          if (providerReloads >= 1) {
             currentBaseURL = "http://127.0.0.1:5678/v1"
           }
         }),
@@ -216,7 +216,7 @@ describe("V2 plugin entrypoint", () => {
     try {
       await plugin.setup(ctx as never)
       await new Promise((resolve) => setTimeout(resolve, 0))
-      expect(ctx.provider.reload).toHaveBeenCalledTimes(4)
+      expect(ctx.provider.reload).toHaveBeenCalledTimes(3)
       expect(ctx.integration.transform).toHaveBeenCalledTimes(1)
       expect(ctx.provider.transform).toHaveBeenCalledTimes(1)
       expect(fetcher).toHaveBeenNthCalledWith(1, "http://127.0.0.1:1234/v1/models", expect.any(Object))
@@ -311,6 +311,41 @@ describe("V2 plugin entrypoint", () => {
       await refresh({ force: true })
       const after = await status({ details: true })
       expect(after.providers[0]?.models.map((model) => model.id)).toContain("stable-model")
+    } finally {
+      fetcher.mockRestore()
+    }
+  })
+
+  it("does not reload the provider catalog until a refresh has discovered models", async () => {
+    let releaseRefresh: (() => void) | undefined
+    const refreshStarted = new Promise<void>((resolve) => { releaseRefresh = resolve })
+    const fetcher = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ data: [{ id: "initial-model" }] }) } as Response)
+      .mockImplementationOnce(async () => {
+        await refreshStarted
+        return { ok: true, json: async () => ({ data: [{ id: "refreshed-model" }] }) } as Response
+      })
+    const rpcHandlers: Record<string, (...args: unknown[]) => Promise<unknown>> = {}
+    const ctx = context({
+      rpc: {
+        register: vi.fn().mockImplementation(async (definition, handlers) => {
+          if (definition.id === "opencode.models-discovery") Object.assign(rpcHandlers, handlers)
+        }),
+      },
+    })
+
+    try {
+      await plugin.setup(ctx as never)
+      expect(ctx.provider.reload).toHaveBeenCalledTimes(1)
+
+      const refresh = rpcHandlers.refresh as (input?: unknown) => Promise<unknown>
+      const pending = refresh({ force: true })
+      await new Promise((resolve) => setTimeout(resolve, 0))
+      expect(ctx.provider.reload).toHaveBeenCalledTimes(1)
+
+      releaseRefresh?.()
+      await pending
+      expect(ctx.provider.reload).toHaveBeenCalledTimes(2)
     } finally {
       fetcher.mockRestore()
     }
