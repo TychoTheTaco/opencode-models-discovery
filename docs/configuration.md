@@ -178,15 +178,47 @@ See [Persisted Model Discovery Cache](persisted-model-discovery.md) for the comp
 
 ## Model Assembly And Customization
 
-For each eligible provider, the plugin produces its final `provider.<name>.models` map in this order:
+For each eligible provider, the plugin produces its final model map in this order. The configuration path is `provider.<name>.models` for the V1 legacy adapter and `providers.<name>.models` for OpenCode v2:
 
 1. Obtain the discovered model set from a fresh provider request or a valid persisted cache entry.
 2. For a live request, apply model filters, build OpenCode model configuration, and apply the optional `modelInfoFormat` enrichment.
 3. Apply saved plugin-managed per-model overrides when present.
-4. Apply matching explicit `provider.<name>.models.<model-id>` configuration from `opencode.json`.
+4. Apply matching explicit `provider.<name>.models.<model-id>` (V1) or `providers.<name>.models.<model-id>` (V2) configuration from `opencode.json`.
 5. Preserve explicit model entries whose ids were not discovered as standalone models.
 
 For a matching model id, the discovered or cached configuration is the base and explicit configuration is a recursive override. Nested objects merge, while arrays and scalar values replace the existing value. The discovered model id remains authoritative, so an explicit `id` value cannot rename it.
+
+### OpenCode v2
+
+OpenCode v2 uses `providers` and represents model variants as an array of entries with `id` and `settings` fields:
+
+```json
+{
+  "providers": {
+    "gateway": {
+      "models": {
+        "example-model": {
+          "options": {
+            "customRouting": true
+          },
+          "variants": [
+            { "id": "none", "settings": { "reasoningEffort": "none" } },
+            { "id": "low", "settings": { "reasoningEffort": "low" } },
+            { "id": "high", "settings": { "reasoningEffort": "high" } }
+          ]
+        },
+        "manual-only-model": {
+          "name": "Manual Only Model"
+        }
+      }
+    }
+  }
+}
+```
+
+### OpenCode v1 legacy adapter
+
+The following uses the V1 configuration shape. V1 uses `provider` and the legacy object form for `variants`:
 
 ```json
 {
@@ -212,11 +244,11 @@ For a matching model id, the discovered or cached configuration is the base and 
 }
 ```
 
-If `example-model` was discovered with a name, limits, modalities, and capability metadata, those fields remain available and `options.customRouting` plus `variants.high` are added. `manual-only-model` remains available even if the provider does not return it from its discovery endpoint.
+If `example-model` was discovered with a name, limits, modalities, and capability metadata, those fields remain available and the explicit customization is merged on top. `manual-only-model` remains available even if the provider does not return it from its discovery endpoint.
 
-OpenCode validates `provider.<name>.models.<model-id>` against its own model schema before plugins run. Use documented model fields such as `options` or `variants` for custom values; arbitrary top-level keys are removed by OpenCode and cannot be merged by this plugin.
+OpenCode validates each model against its own model schema before plugins run. Use documented model fields such as `options` or `variants` for custom values; arbitrary top-level keys are removed by OpenCode and cannot be merged by this plugin. For V2, use the array form shown above; the object-shaped `variants` example is only for the V1 legacy adapter.
 
-The persisted cache stores only the filtered and enriched discovered base models. It does not store explicit `provider.<name>.models` configuration, so explicit customizations are applied from the active OpenCode config on every startup. This keeps provider inventory data separate from user configuration.
+The persisted cache stores only the filtered and enriched discovered base models. It does not store explicit `provider.<name>.models` (V1) or `providers.<name>.models` (V2) configuration, so explicit customizations are applied from the active OpenCode config on every startup. This keeps provider inventory data separate from user configuration.
 
 ## Default Enablement
 
