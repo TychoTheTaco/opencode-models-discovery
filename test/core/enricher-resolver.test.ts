@@ -22,6 +22,17 @@ describe('shared enricher resolver', () => {
     expect(fetcher).not.toHaveBeenCalled()
   })
 
+  it('resolves OpenRouter inline metadata without a network request', async () => {
+    const fetcher = vi.fn()
+    const enricher = await resolveModelInfoEnricher(
+      { baseURL: 'https://openrouter.ai/api/v1', fetcher },
+      { format: ModelInfoFormat.OpenRouter },
+    )
+
+    expect(enricher).toBeDefined()
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+
   it('resolves remote LiteLLM format with authentication and timeout', async () => {
     const fetcher = vi.fn().mockResolvedValue({
       ok: true,

@@ -117,7 +117,7 @@ Each provider can configure discovery behavior through `provider.<name>.options.
 | `provider.<name>.options.modelsDiscovery.endpoint` | `string` | Provider-specific models endpoint as an origin-relative path beginning with `/`. Defaults to `/v1/models` |
 | `provider.<name>.options.modelsDiscovery.timeoutMs` | positive finite `number` | Per-request timeout for the provider's models and provider-specific metadata endpoints. Defaults to `3000` |
 | `provider.<name>.options.modelsDiscovery.modelInfoEndpoint` | `string` | Override a format-specific metadata endpoint as an origin-relative path or complete URL. Defaults to `/v1/model/info` for `"litellm"` and `/api/v1/models` for `"lmstudio"`; for `"aiproxy"`, it overrides the models.dev fallback URL |
-| `provider.<name>.options.modelsDiscovery.modelInfoFormat` | `string` | Model info response format. Currently supports `"aiproxy"`, `"bifrost"`, `"litellm"`, `"models.dev"`, `"vllm"`, `"lmstudio"`, `"llama-swap"`, and `"omniroute"` |
+| `provider.<name>.options.modelsDiscovery.modelInfoFormat` | `string` | Model info response format. Currently supports `"aiproxy"`, `"bifrost"`, `"litellm"`, `"models.dev"`, `"vllm"`, `"lmstudio"`, `"llama-swap"`, `"omniroute"`, and `"openrouter"` |
 | `provider.<name>.options.modelsDiscovery.filterNonChat` | `boolean` | When model info is available, skip models whose `model_info.mode` is not `chat`. Defaults to `true` |
 | `provider.<name>.options.modelsDiscovery.models.includeRegex` | `string[]` | Shortcut regex allow-list for discovered model ids only |
 | `provider.<name>.options.modelsDiscovery.models.excludeRegex` | `string[]` | Shortcut regex deny-list for discovered model ids only |
@@ -355,7 +355,7 @@ Community provider examples live in [`docs/config_example/`](config_example/).
 
 The generic OpenAI-compatible `/v1/models` endpoint only guarantees a small model list shape. Extra metadata such as context limits, tool calling, reasoning, image input, or structured output is provider-specific, so metadata enrichment is opt-in.
 
-The plugin currently supports eight model info formats:
+The plugin currently supports nine model info formats:
 
 | Format | Source | Requires `modelInfoEndpoint` | Notes |
 |--------|--------|------------------------------|-------|
@@ -367,6 +367,7 @@ The plugin currently supports eight model info formats:
 | `"lmstudio"` | LM Studio 0.4.0+ `/api/v1/models` inventory | No | Uses `/api/v1/models` by default; set `modelInfoEndpoint` for another path |
 | `"llama-swap"` | Fields in llama-swap's `/v1/models` response | No | Reads inline context, modalities, and function-calling metadata when present |
 | `"omniroute"` | Fields in OmniRoute's `/v1/models` response | No | Reads OmniRoute inline limits, modalities, and capabilities when present |
+| `"openrouter"` | Fields in OpenRouter's `/v1/models` response | No | Reads OpenRouter inline limits, modalities, pricing, capabilities, and reasoning metadata when present |
 
 ### AIProxy Metadata
 
@@ -477,6 +478,34 @@ For each discovered model, the plugin maps `context_length`, `max_input_tokens`,
 When OmniRoute advertises service-tier metadata through `capabilities.service_tiers`, `service_tiers`, or `additional_speed_tiers`, supported tiers become OpenCode variants with request-body overlays. `priority` and `fast` are normalized to a `fast` variant that sends `service_tier: "fast"`; `flex` becomes a `flex` variant. Reasoning-effort variants remain available alongside service-tier variants. Missing or malformed metadata is left unset.
 
 This format is intentionally explicit because these fields are OmniRoute extensions to the generic OpenAI-compatible model-list response. For the most complete OmniRoute integration, including dynamic provider support, use OmniRoute's official `@omniroute/opencode-plugin`.
+
+### OpenRouter Model Info
+
+Use `modelInfoFormat: "openrouter"` for an [OpenRouter](https://openrouter.ai/) provider. It reads OpenRouter's inline metadata from the same `/v1/models` response and does not make another metadata request.
+
+```json
+{
+  "plugin": ["opencode-models-discovery"],
+  "provider": {
+    "openrouter": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "OpenRouter",
+      "options": {
+        "baseURL": "https://openrouter.ai/api/v1",
+        "apiKey": "YOUR_OPENROUTER_API_KEY",
+        "modelsDiscovery": {
+          "enabled": true,
+          "modelInfoFormat": "openrouter",
+          "smartModelName": true
+        }
+      },
+      "models": {}
+    }
+  }
+}
+```
+
+For each discovered model, the plugin maps `context_length` and `top_provider.max_completion_tokens` to context and output limits, `architecture` modalities to OpenCode modalities, and OpenRouter's prompt/completion and cache pricing to per-million-token costs. It maps `supported_parameters` entries for tools and temperature, and converts `reasoning.supported_efforts` into reasoning variants. A non-empty `name` is used as the display name when `smartModelName` is enabled. Missing or malformed metadata is left unset without preventing discovery.
 
 ### Bifrost Model Info
 

@@ -8,6 +8,7 @@ import { createBifrostEnricher } from '../../src/utils/model-info/bifrost'
 import { createVLLMEnricher } from '../../src/utils/model-info/vllm'
 import { createLlamaSwapEnricher } from '../../src/utils/model-info/llamaswap'
 import { createOmniRouteEnricher } from '../../src/utils/model-info/omniroute'
+import { createOpenRouterEnricher } from '../../src/utils/model-info/openrouter'
 import { createLMStudioEnricher } from '../../src/utils/model-info/lmstudio'
 import { createAIProxyEnricher } from '../../src/utils/model-info/aiproxy'
 
@@ -187,6 +188,38 @@ describe('V1/V2 shared-core parity', () => {
     expect(mapped.limit).toEqual(draft.limit)
     expect(mapped.capabilities.tools).toBe(true)
     expect(mapped.reasoning).toBe(true)
+  })
+
+  it('keeps native OpenRouter enrichment equivalent for V1 drafts and V2 models', () => {
+    const drafts = discoverModelDrafts([{
+      id: 'openai/gpt-6.1-sol',
+      name: 'OpenAI: GPT-6.1 Sol',
+      context_length: 1_048_576,
+      top_provider: { max_completion_tokens: 65_536 },
+      architecture: { input_modalities: ['text', 'image'], output_modalities: ['text'] },
+      pricing: { prompt: '0.000002', completion: '0.00001' },
+      supported_parameters: ['tools'],
+      reasoning: { supported_efforts: ['low', 'medium', 'high'] },
+    }], {
+      filter: { includeBy: [], excludeBy: [], includeRegex: [], excludeRegex: [] },
+      smartModelName: true,
+      enricher: createOpenRouterEnricher(null),
+      enrichmentContext: { filterNonChat: true },
+    })
+    const draft = drafts[0]!
+    const mapped = mapToDiscoveredV2Model(draft, options)
+
+    expect(draft.name).toBe('OpenAI: GPT-6.1 Sol')
+    expect(draft.limit).toEqual({ context: 1_048_576, output: 65_536 })
+    expect(draft.modalities).toEqual({ input: ['text', 'image'], output: ['text'] })
+    expect(draft.cost).toEqual({ input: 2, output: 10 })
+    expect(draft.toolCall).toBe(true)
+    expect(draft.reasoning).toBe(true)
+    expect(mapped.name).toBe(draft.name)
+    expect(mapped.limit).toEqual(draft.limit)
+    expect(mapped.capabilities.input).toEqual(['text', 'image'])
+    expect(mapped.capabilities.tools).toBe(true)
+    expect(mapped.cost).toEqual([{ input: 2, output: 10, cache: { read: 0, write: 0 } }])
   })
 
   it('keeps native LM Studio enrichment equivalent for V1 drafts and V2 models', () => {
