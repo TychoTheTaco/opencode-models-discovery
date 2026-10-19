@@ -19,7 +19,7 @@ OpenCode v2 uses `plugins` and `providers`. The plugin can be declared directly 
   "providers": {
     "my-provider": {
       "name": "My AI Provider",
-      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "package": "@opencode/ai/providers/openai-compatible",
       "settings": {
         "baseURL": "https://api.example.com/v1",
         // Optional: omit if managing credentials interactively via OpenCode '/connect'
@@ -379,7 +379,7 @@ Use `modelInfoFormat: "aiproxy"` when the configured model-list endpoint returns
 {
   "providers": {
     "aiproxy": {
-      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "package": "@opencode/ai/providers/openai-compatible",
       "settings": {
         "baseURL": "https://aiproxy.example/api",
         // Optional: omit if managing credentials via OpenCode '/connect'
@@ -433,7 +433,7 @@ Use `modelInfoFormat: "llama-swap"` for a [llama-swap](https://github.com/mostly
 {
   "providers": {
     "llama-swap": {
-      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "package": "@opencode/ai/providers/openai-compatible",
       "settings": {
         "baseURL": "http://127.0.0.1:8080/v1",
         "modelsDiscovery": {
@@ -456,7 +456,7 @@ Use `modelInfoFormat: "omniroute"` for an [OmniRoute](https://github.com/diegoso
 {
   "providers": {
     "omniroute": {
-      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "package": "@opencode/ai/providers/openai-compatible",
       "settings": {
         "baseURL": "http://127.0.0.1:20128/v1",
         "modelsDiscovery": {
@@ -483,7 +483,7 @@ Use `modelInfoFormat: "openrouter"` for an [OpenRouter](https://openrouter.ai/) 
 {
   "providers": {
     "openrouter": {
-      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "package": "@opencode/ai/providers/openai-compatible",
       "settings": {
         "baseURL": "https://openrouter.ai/api/v1",
         // Optional: omit if managing credentials via OpenCode '/connect'
@@ -509,7 +509,7 @@ Use `modelInfoFormat: "bifrost"` for a Bifrost AI Gateway provider. It reads Bif
 {
   "providers": {
     "bifrost": {
-      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "package": "@opencode/ai/providers/openai-compatible",
       "settings": {
         "baseURL": "http://127.0.0.1:8080/v1",
         "modelsDiscovery": {
@@ -538,7 +538,7 @@ Set `modelInfoFormat` to `"litellm"` to enable it. The plugin requests `/v1/mode
 {
   "providers": {
     "litellm": {
-      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "package": "@opencode/ai/providers/openai-compatible",
       "settings": {
         "baseURL": "http://127.0.0.1:4000/v1",
         "modelsDiscovery": {
@@ -573,7 +573,7 @@ Use `modelInfoFormat: "vllm"` for a vLLM-compatible provider whose `/v1/models` 
 {
   "providers": {
     "local-vllm": {
-      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "package": "@opencode/ai/providers/openai-compatible",
       "settings": {
         "baseURL": "http://127.0.0.1:8000/v1",
         "modelsDiscovery": {
@@ -598,7 +598,7 @@ Use `modelInfoFormat: "lmstudio"` with LM Studio 0.4.0+, which officially releas
 {
   "providers": {
     "lmstudio": {
-      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "package": "@opencode/ai/providers/openai-compatible",
       "settings": {
         "baseURL": "http://127.0.0.1:1234/v1",
         "modelsDiscovery": {
@@ -627,7 +627,7 @@ This does not require `modelInfoEndpoint`, because the source is fixed to `https
 {
   "providers": {
     "openrouter": {
-      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "package": "@opencode/ai/providers/openai-compatible",
       "settings": {
         "baseURL": "https://openrouter.ai/api/v1",
         // Optional: omit if managing credentials via OpenCode '/connect'
@@ -670,7 +670,7 @@ For providers with custom metadata paths or non-standard behavior:
 {
   "providers": {
     "custom": {
-      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "package": "@opencode/ai/providers/openai-compatible",
       "settings": {
         "baseURL": "http://127.0.0.1:9000/v1",
         "modelsDiscovery": {
@@ -696,7 +696,7 @@ For providers with custom metadata paths or non-standard behavior:
   ],
   "providers": {
     "lmstudio": {
-      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "package": "@opencode/ai/providers/openai-compatible",
       "settings": {
         "baseURL": "http://127.0.0.1:1234/v1",
         "modelsDiscovery": {
@@ -712,7 +712,7 @@ For providers with custom metadata paths or non-standard behavior:
       }
     },
     "deepseek": {
-      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "package": "@opencode/ai/providers/openai-compatible",
       "settings": {
         "baseURL": "https://api.deepseek.com",
         // Optional: omit if managing credentials via OpenCode '/connect'
@@ -745,7 +745,7 @@ In this example:
   ],
   "providers": {
     "ollama": {
-      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "package": "@opencode/ai/providers/openai-compatible",
       "settings": {
         "baseURL": "http://127.0.0.1:11434/v1",
         "modelsDiscovery": {
@@ -759,7 +759,7 @@ In this example:
       }
     },
     "deepseek": {
-      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "package": "@opencode/ai/providers/openai-compatible",
       "settings": {
         "baseURL": "https://api.deepseek.com",
         // Optional: omit if managing credentials via OpenCode '/connect'

@@ -39,7 +39,7 @@ Add the plugin package to your OpenCode v2 `opencode.json` (or `opencode.jsonc`)
   "providers": {
     "gateway-custom": {
       "name": "Gateway Custom",
-      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "package": "@opencode/ai/providers/openai-compatible",
       "settings": {
         "baseURL": "https://gateway.example.com/v1",
         // Optional: omit if managing credentials interactively via OpenCode '/connect'
@@ -260,7 +260,7 @@ For AIProxy's inline model-list metadata, use `modelInfoFormat: "aiproxy"`:
 {
   "providers": {
     "aiproxy": {
-      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "package": "@opencode/ai/providers/openai-compatible",
       "settings": {
         "baseURL": "https://aiproxy.example/api",
         "apiKey": "{env:AIPROXY_API_KEY}",
