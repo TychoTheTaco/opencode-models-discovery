@@ -9,7 +9,7 @@ OpenCode v2 is the stable, primary integration. The package contains separate ad
 | OpenCode v1 | OpenCode v2 |
 |---|---|
 | `plugin` | `plugins` |
-| `plugin: ["opencode-models-discovery"]` | `plugins: ["opencode-models-discovery@rc"]` (or `@2.0.0` once released) |
+| `plugin: ["opencode-models-discovery"]` | `plugins: ["opencode-models-discovery@2.0.0"]` |
 | `provider` | `providers` |
 | `provider.<id>.npm` | `providers.<id>.package` |
 | `provider.<id>.options` | `providers.<id>.settings` |
@@ -60,11 +60,11 @@ The V1 package commonly uses:
 
 ## After: OpenCode v2
 
-```json
+```jsonc
 {
   "$schema": "https://opencode.ai/config.json",
   "plugins": [
-    "opencode-models-discovery@rc"
+    "opencode-models-discovery@2.0.0"
   ],
   "providers": {
     "gateway": {
@@ -72,7 +72,8 @@ The V1 package commonly uses:
       "name": "My Gateway",
       "settings": {
         "baseURL": "https://gateway.example.com/v1",
-        "apiKey": "${GATEWAY_API_KEY}",
+        // Optional: omit if managing credentials interactively via OpenCode '/connect'
+        "apiKey": "{env:GATEWAY_API_KEY}",
         "modelsDiscovery": {
           "enabled": true,
           "modelInfoFormat": "models.dev",
@@ -128,8 +129,8 @@ OpenCode v2 uses its provider registry and keeps discovered models in the backgr
 
 Do not copy real API keys into a public configuration example. Prefer an environment placeholder resolved by OpenCode v2:
 
-```json
-"apiKey": "${GATEWAY_API_KEY}"
+```jsonc
+"apiKey": "{env:GATEWAY_API_KEY}"
 ```
 
 Alternatively, omit `apiKey` entirely and use OpenCode v2's native `/connect` command. When you connect a provider via `/connect`, the plugin resolves credentials dynamically through OpenCode v2's integration API and injects runtime authentication headers. OpenCode v2 uses this native integration architecture instead of reading V1 `auth.json` files from disk. See [Connect and Auth Documentation](connect-and-auth.md) for full details.

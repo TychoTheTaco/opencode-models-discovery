@@ -28,16 +28,13 @@ Originally inspired by [opencode-lmstudio](https://github.com/agustif/opencode-l
 
 OpenCode v2 uses **`plugins`** (an array of package names) and **`providers`** (a map). Configure discovery under `providers.<id>.settings.modelsDiscovery`; it runs only when `enabled` is explicitly `true`. OpenCode v1 instead uses `plugin`, `provider`, and `options` (see [OpenCode v1 quick start](#opencode-v1-quick-start)).
 
-Add the plugin package to your OpenCode v2 `opencode.json`. OpenCode resolves
-and loads the package automatically.
+Add the plugin package to your OpenCode v2 `opencode.json` (or `opencode.jsonc`). OpenCode resolves and loads the package automatically:
 
-> **Note on Pre-releases**: During Release Candidate testing, use `"opencode-models-discovery@rc"` (or pin to a specific release like `"opencode-models-discovery@2.0.0-rc.2"`). Once `v2.0.0` is published to `latest`, `"opencode-models-discovery@2.0.0"` and `"opencode-models-discovery@latest"` will resolve directly.
-
-```json
+```jsonc
 {
   "$schema": "https://opencode.ai/config.json",
   "plugins": [
-    "opencode-models-discovery@rc"
+    "opencode-models-discovery@2.0.0"
   ],
   "providers": {
     "gateway-custom": {
@@ -45,7 +42,8 @@ and loads the package automatically.
       "package": "@opencode-ai/ai/providers/openai-compatible",
       "settings": {
         "baseURL": "https://gateway.example.com/v1",
-        "apiKey": "${GATEWAY_API_KEY}",
+        // Optional: omit if managing credentials interactively via OpenCode '/connect'
+        "apiKey": "{env:GATEWAY_API_KEY}",
         "modelsDiscovery": {
           "enabled": true,
           "modelInfoFormat": "models.dev",
@@ -65,7 +63,7 @@ and loads the package automatically.
 }
 ```
 
-Set `GATEWAY_API_KEY` in the environment used to start OpenCode; the `${GATEWAY_API_KEY}` placeholder is resolved by the OpenCode v2 host. Alternatively, omit `apiKey` from `opencode.json` and configure credentials interactively with OpenCode's native `/connect` command. If your endpoint needs no credential, omit `apiKey`. Use the same provider package shown above for OpenAI-compatible discovery. The provider needs a `baseURL`; the plugin fetches its models from `/v1/models` by default (relative to the URL's **origin**). For providers that expose `/models` instead, set `"endpoint": "/models"` inside `modelsDiscovery`.
+Set `GATEWAY_API_KEY` in the environment used to start OpenCode; the `{env:GATEWAY_API_KEY}` placeholder is resolved by the OpenCode v2 host. Alternatively, omit `apiKey` from `opencode.json` and configure credentials interactively with OpenCode's native `/connect` command. If your endpoint needs no credential, omit `apiKey`. Use the same provider package shown above for OpenAI-compatible discovery. The provider needs a `baseURL`; the plugin fetches its models from `/v1/models` by default (relative to the URL's **origin**). For providers that expose `/models` instead, set `"endpoint": "/models"` inside `modelsDiscovery`.
 
 ### Credentials
 
@@ -262,7 +260,7 @@ For AIProxy's inline model-list metadata, use `modelInfoFormat: "aiproxy"`:
 {
   "providers": {
     "aiproxy": {
-      "package": "aisdk:@ai-sdk/openai-compatible",
+      "package": "@opencode-ai/ai/providers/openai-compatible",
       "settings": {
         "baseURL": "https://aiproxy.example/api",
         "apiKey": "{env:AIPROXY_API_KEY}",
@@ -305,6 +303,17 @@ For LiteLLM-compatible model info endpoints, `/v1/model/info` is used by default
 }
 ```
 
+For OpenRouter's inline `/v1/models` metadata, without another metadata request:
+
+```json
+{
+  "modelsDiscovery": {
+    "enabled": true,
+    "modelInfoFormat": "openrouter"
+  }
+}
+```
+
 For Bifrost AI Gateway's inline `/v1/models` metadata, without another metadata request:
 
 ```json
@@ -327,6 +336,17 @@ For LM Studio 0.4.0+'s native v1 REST inventory endpoint:
 }
 ```
 
+For vLLM's inline `max_model_len` metadata, without another metadata request:
+
+```json
+{
+  "modelsDiscovery": {
+    "enabled": true,
+    "modelInfoFormat": "vllm"
+  }
+}
+```
+
 For llama-swap's inline `/v1/models` metadata, without another metadata request:
 
 ```json
@@ -334,6 +354,17 @@ For llama-swap's inline `/v1/models` metadata, without another metadata request:
   "modelsDiscovery": {
     "enabled": true,
     "modelInfoFormat": "llama-swap"
+  }
+}
+```
+
+For OmniRoute's inline `/v1/models` metadata, without another metadata request:
+
+```json
+{
+  "modelsDiscovery": {
+    "enabled": true,
+    "modelInfoFormat": "omniroute"
   }
 }
 ```

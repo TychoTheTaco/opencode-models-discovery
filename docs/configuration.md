@@ -10,30 +10,30 @@ For a step-by-step conversion between the two configuration formats, see [Migrat
 
 OpenCode v2 uses `plugins` and `providers`. The plugin can be declared directly as a package name in `plugins`. Discovery configuration is read from `providers.<id>.settings.modelsDiscovery`; it is not read from `provider.<id>.options.modelsDiscovery` or `plugins[].options.providers`.
 
-> **Note on Pre-releases**: During Release Candidate testing, configure `"opencode-models-discovery@rc"` (or pin to `"opencode-models-discovery@2.0.0-rc.2"`). Once `v2.0.0` is published to `latest`, `"opencode-models-discovery@2.0.0"` or `"opencode-models-discovery@latest"` will resolve directly.
-
-```json
+```jsonc
 {
   "$schema": "https://opencode.ai/config.json",
   "plugins": [
-    "opencode-models-discovery@rc"
+    "opencode-models-discovery@2.0.0"
   ],
   "providers": {
-    "lmstudio": {
-      "name": "LM Studio",
+    "my-provider": {
+      "name": "My AI Provider",
       "package": "@opencode-ai/ai/providers/openai-compatible",
       "settings": {
-        "baseURL": "http://127.0.0.1:1234/v1",
+        "baseURL": "https://api.example.com/v1",
+        // Optional: omit if managing credentials interactively via OpenCode '/connect'
+        "apiKey": "{env:PROVIDER_API_KEY}",
         "modelsDiscovery": {
           "enabled": true,
           "modelInfoFormat": "models.dev",
           "smartModelName": true,
           "cache": {
             "enabled": true,
-            "ttlSeconds": 86400
+            "ttlSeconds": 86400 // Cache for 24 hours
           },
           "models": {
-            "includeBy": [{ "field": "id", "match": "^llama" }]
+            "includeBy": [{ "field": "id", "match": "^gpt-" }]
           }
         }
       }
@@ -208,7 +208,7 @@ For a matching model id, the discovered or cached configuration is the base and 
 
 OpenCode v2 uses `providers` and represents model variants as an array of entries with `id` and `settings` fields:
 
-```json
+```jsonc
 {
   "providers": {
     "gateway": {
@@ -369,18 +369,20 @@ The plugin currently supports nine model info formats:
 | `"omniroute"` | Fields in OmniRoute's `/v1/models` response | No | Reads OmniRoute inline limits, modalities, and capabilities when present |
 | `"openrouter"` | Fields in OpenRouter's `/v1/models` response | No | Reads OpenRouter inline limits, modalities, pricing, capabilities, and reasoning metadata when present |
 
+> **Configuration syntax**: All examples below use the primary **OpenCode v2** configuration shape (`providers.<id>.settings.modelsDiscovery`). The discovery options (`enabled`, `modelInfoFormat`, `models`, `smartModelName`, etc.) are identical between versions; for legacy OpenCode v1, place the same options under `provider.<id>.options.modelsDiscovery` (with `plugin: ["opencode-models-discovery"]` and `npm: "@ai-sdk/openai-compatible"`).
+
 ### AIProxy Metadata
 
 Use `modelInfoFormat: "aiproxy"` when the configured model-list endpoint returns AIProxy's inline `limits` and `pricing` fields. The plugin makes no second request to AIProxy. It also fetches models.dev for general metadata and display names, then overlays valid AIProxy values. Explicit model configuration remains highest priority.
 
-```json
+```jsonc
 {
-  "plugin": ["opencode-models-discovery"],
-  "provider": {
+  "providers": {
     "aiproxy": {
-      "npm": "@ai-sdk/openai-compatible",
-      "options": {
+      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "settings": {
         "baseURL": "https://aiproxy.example/api",
+        // Optional: omit if managing credentials via OpenCode '/connect'
         "apiKey": "{env:AIPROXY_API_KEY}",
         "modelsDiscovery": {
           "enabled": true,
@@ -427,21 +429,18 @@ Recognized effort tiers are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`,
 
 Use `modelInfoFormat: "llama-swap"` for a [llama-swap](https://github.com/mostlygeek/llama-swap) provider. It reads llama-swap's inline metadata from the same `/v1/models` response and does not make another metadata request.
 
-```json
+```jsonc
 {
-  "plugin": ["opencode-models-discovery"],
-  "provider": {
+  "providers": {
     "llama-swap": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "llama-swap",
-      "options": {
+      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "settings": {
         "baseURL": "http://127.0.0.1:8080/v1",
         "modelsDiscovery": {
           "enabled": true,
           "modelInfoFormat": "llama-swap"
         }
-      },
-      "models": {}
+      }
     }
   }
 }
@@ -453,21 +452,18 @@ For each discovered model, the plugin maps `context_length` to `limit.context`, 
 
 Use `modelInfoFormat: "omniroute"` for an [OmniRoute](https://github.com/diegosouzapw/OmniRoute) provider. It reads OmniRoute's documented inline metadata from the same `/v1/models` response and does not make another metadata request.
 
-```json
+```jsonc
 {
-  "plugin": ["opencode-models-discovery"],
-  "provider": {
+  "providers": {
     "omniroute": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "OmniRoute",
-      "options": {
+      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "settings": {
         "baseURL": "http://127.0.0.1:20128/v1",
         "modelsDiscovery": {
           "enabled": true,
           "modelInfoFormat": "omniroute"
         }
-      },
-      "models": {}
+      }
     }
   }
 }
@@ -483,23 +479,21 @@ This format is intentionally explicit because these fields are OmniRoute extensi
 
 Use `modelInfoFormat: "openrouter"` for an [OpenRouter](https://openrouter.ai/) provider. It reads OpenRouter's inline metadata from the same `/v1/models` response and does not make another metadata request.
 
-```json
+```jsonc
 {
-  "plugin": ["opencode-models-discovery"],
-  "provider": {
+  "providers": {
     "openrouter": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "OpenRouter",
-      "options": {
+      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "settings": {
         "baseURL": "https://openrouter.ai/api/v1",
-        "apiKey": "YOUR_OPENROUTER_API_KEY",
+        // Optional: omit if managing credentials via OpenCode '/connect'
+        "apiKey": "{env:OPENROUTER_API_KEY}",
         "modelsDiscovery": {
           "enabled": true,
           "modelInfoFormat": "openrouter",
           "smartModelName": true
         }
-      },
-      "models": {}
+      }
     }
   }
 }
@@ -511,21 +505,18 @@ For each discovered model, the plugin maps `context_length` and `top_provider.ma
 
 Use `modelInfoFormat: "bifrost"` for a Bifrost AI Gateway provider. It reads Bifrost's documented inline metadata from the same `/v1/models` response and does not make another metadata request.
 
-```json
+```jsonc
 {
-  "plugin": ["opencode-models-discovery"],
-  "provider": {
+  "providers": {
     "bifrost": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "Bifrost",
-      "options": {
+      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "settings": {
         "baseURL": "http://127.0.0.1:8080/v1",
         "modelsDiscovery": {
           "enabled": true,
           "modelInfoFormat": "bifrost"
         }
-      },
-      "models": {}
+      }
     }
   }
 }
@@ -543,22 +534,19 @@ LiteLLM exposes a richer `/v1/model/info` endpoint in addition to the OpenAI-com
 
 Set `modelInfoFormat` to `"litellm"` to enable it. The plugin requests `/v1/model/info` by default; set `modelInfoEndpoint` only when the provider uses another path.
 
-```json
+```jsonc
 {
-  "plugin": ["opencode-models-discovery"],
-  "provider": {
+  "providers": {
     "litellm": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "LiteLLM",
-      "options": {
+      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "settings": {
         "baseURL": "http://127.0.0.1:4000/v1",
         "modelsDiscovery": {
           "enabled": true,
           "endpoint": "/v1/models",
           "modelInfoFormat": "litellm"
         }
-      },
-      "models": {}
+      }
     }
   }
 }
@@ -581,21 +569,18 @@ When model info is available, the plugin uses LiteLLM `model_info` fields to pop
 
 Use `modelInfoFormat: "vllm"` for a vLLM-compatible provider whose `/v1/models` response includes a numeric `max_model_len` field for each model. This does not make another metadata request.
 
-```json
+```jsonc
 {
-  "plugin": ["opencode-models-discovery"],
-  "provider": {
+  "providers": {
     "local-vllm": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "Local vLLM",
-      "options": {
+      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "settings": {
         "baseURL": "http://127.0.0.1:8000/v1",
         "modelsDiscovery": {
           "enabled": true,
           "modelInfoFormat": "vllm"
         }
-      },
-      "models": {}
+      }
     }
   }
 }
@@ -609,21 +594,18 @@ For each discovered model with a positive numeric `max_model_len`, the plugin se
 
 Use `modelInfoFormat: "lmstudio"` with LM Studio 0.4.0+, which officially released the native v1 REST API and `GET /api/v1/models`, to discover models through `/v1/models` and enrich them from `/api/v1/models`. Set `modelInfoEndpoint` only when LM Studio uses another inventory path.
 
-```json
+```jsonc
 {
-  "plugin": ["opencode-models-discovery"],
-  "provider": {
+  "providers": {
     "lmstudio": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "LM Studio",
-      "options": {
+      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "settings": {
         "baseURL": "http://127.0.0.1:1234/v1",
         "modelsDiscovery": {
           "enabled": true,
           "modelInfoFormat": "lmstudio"
         }
-      },
-      "models": {}
+      }
     }
   }
 }
@@ -641,22 +623,20 @@ This project is not affiliated with, endorsed by, or sponsored by [models.dev](h
 
 This does not require `modelInfoEndpoint`, because the source is fixed to `https://models.dev/models.json`:
 
-```json
+```jsonc
 {
-  "plugin": ["opencode-models-discovery"],
-  "provider": {
+  "providers": {
     "openrouter": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "OpenRouter",
-      "options": {
+      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "settings": {
         "baseURL": "https://openrouter.ai/api/v1",
-        "apiKey": "YOUR_OPENROUTER_API_KEY",
+        // Optional: omit if managing credentials via OpenCode '/connect'
+        "apiKey": "{env:OPENROUTER_API_KEY}",
         "modelsDiscovery": {
           "enabled": true,
           "modelInfoFormat": "models.dev"
         }
-      },
-      "models": {}
+      }
     }
   }
 }
@@ -686,12 +666,12 @@ Because this option makes a public network request to models.dev during discover
 
 For providers with custom metadata paths or non-standard behavior:
 
-```json
+```jsonc
 {
-  "provider": {
+  "providers": {
     "custom": {
-      "npm": "@ai-sdk/openai-compatible",
-      "options": {
+      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "settings": {
         "baseURL": "http://127.0.0.1:9000/v1",
         "modelsDiscovery": {
           "modelInfoEndpoint": "/custom/model-info",
@@ -708,14 +688,16 @@ For providers with custom metadata paths or non-standard behavior:
 
 ### Mixed Providers
 
-```json
+```jsonc
 {
-  "plugin": ["opencode-models-discovery"],
-  "provider": {
+  "$schema": "https://opencode.ai/config.json",
+  "plugins": [
+    "opencode-models-discovery@2.0.0"
+  ],
+  "providers": {
     "lmstudio": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "LM Studio",
-      "options": {
+      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "settings": {
         "baseURL": "http://127.0.0.1:1234/v1",
         "modelsDiscovery": {
           "enabled": true,
@@ -727,22 +709,20 @@ For providers with custom metadata paths or non-standard behavior:
           },
           "smartModelName": true
         }
-      },
-      "models": {}
+      }
     },
     "deepseek": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "DeepSeek",
-      "options": {
+      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "settings": {
         "baseURL": "https://api.deepseek.com",
-        "apiKey": "sk-example-deepseek-key",
+        // Optional: omit if managing credentials via OpenCode '/connect'
+        "apiKey": "example_api_key",
         "modelsDiscovery": {
           "enabled": true,
-          "endpoint": "/models",
+          "endpoint": "/models", // DeepSeek uses /models instead of /v1/models
           "smartModelName": true
         }
-      },
-      "models": {}
+      }
     }
   }
 }
@@ -753,19 +733,20 @@ In this example:
 1. `lmstudio` explicitly enables discovery and uses the default `/v1/models` endpoint.
 2. `lmstudio` limits discovery to model ids matching `^gpt-` with `includeBy`.
 3. `deepseek` explicitly enables discovery but uses `"/models"` instead of `/v1/models`.
-4. The API key uses an example placeholder and should be replaced in real configs.
+4. Credentials can be managed via environment variables or OpenCode `/connect`.
 
 ### Provider-First Style
 
-```json
+```jsonc
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["opencode-models-discovery"],
-  "provider": {
+  "plugins": [
+    "opencode-models-discovery@2.0.0"
+  ],
+  "providers": {
     "ollama": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "Ollama",
-      "options": {
+      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "settings": {
         "baseURL": "http://127.0.0.1:11434/v1",
         "modelsDiscovery": {
           "enabled": true,
@@ -778,11 +759,11 @@ In this example:
       }
     },
     "deepseek": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "DeepSeek",
-      "options": {
+      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "settings": {
         "baseURL": "https://api.deepseek.com",
-        "apiKey": "YOUR_DEEPSEEK_API_KEY",
+        // Optional: omit if managing credentials via OpenCode '/connect'
+        "apiKey": "example_api_key",
         "modelsDiscovery": {
           "enabled": true,
           "endpoint": "/models",
@@ -805,18 +786,18 @@ In this example:
 
 For new configs, enable or disable discovery on the provider itself:
 
-```json
+```jsonc
 {
-  "provider": {
+  "providers": {
     "ollama": {
-      "options": {
+      "settings": {
         "modelsDiscovery": {
           "enabled": true
         }
       }
     },
     "lmstudio": {
-      "options": {
+      "settings": {
         "modelsDiscovery": {
           "enabled": false
         }
@@ -850,20 +831,20 @@ Legacy plugin-level provider filters are ignored in `1.0.0` and are shown here o
 
 Control which discovered models are auto-injected with provider-level field filters:
 
-| Option | Type | Description |
+| Option (V2: `settings` / V1: `options`) | Type | Description |
 |--------|------|-------------|
-| `provider.<name>.options.modelsDiscovery.models.includeBy` | `{ field: string, equals: string \| number \| boolean \| null }[]` or `{ field: string, match: string }[]` | If non-empty, only discovered models matching at least one rule will be added for this provider |
-| `provider.<name>.options.modelsDiscovery.models.excludeBy` | `{ field: string, equals: string \| number \| boolean \| null }[]` or `{ field: string, match: string }[]` | Discovered models matching any rule will be skipped for this provider |
-| `provider.<name>.options.modelsDiscovery.models.includeRegex` | `string[]` | Id-only shortcut for `includeBy` with `field: "id"` and `match` |
-| `provider.<name>.options.modelsDiscovery.models.excludeRegex` | `string[]` | Id-only shortcut for `excludeBy` with `field: "id"` and `match` |
+| `providers.<name>.settings.modelsDiscovery.models.includeBy` | `{ field: string, equals: string \| number \| boolean \| null }[]` or `{ field: string, match: string }[]` | If non-empty, only discovered models matching at least one rule will be added for this provider |
+| `providers.<name>.settings.modelsDiscovery.models.excludeBy` | `{ field: string, equals: string \| number \| boolean \| null }[]` or `{ field: string, match: string }[]` | Discovered models matching any rule will be skipped for this provider |
+| `providers.<name>.settings.modelsDiscovery.models.includeRegex` | `string[]` | Id-only shortcut for `includeBy` with `field: "id"` and `match` |
+| `providers.<name>.settings.modelsDiscovery.models.excludeRegex` | `string[]` | Id-only shortcut for `excludeBy` with `field: "id"` and `match` |
 
 Filtering only applies to auto-discovered models. Models already explicitly configured by the user are preserved.
 
-```json
+```jsonc
 {
-  "provider": {
+  "providers": {
     "ollama": {
-      "options": {
+      "settings": {
         "modelsDiscovery": {
           "models": {
             "includeBy": [

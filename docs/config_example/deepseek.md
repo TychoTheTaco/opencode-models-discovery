@@ -1,6 +1,6 @@
 # DeepSeek Configuration Example
 
-This example uses the OpenCode v1 configuration shape. OpenCode v2 support is currently in beta; use `plugins`, `providers`, `package`, and `settings` instead. See the [V2 configuration guide](../configuration.md#opencode-v2-configuration-beta-support).
+This example uses the primary OpenCode v2 configuration shape. For legacy OpenCode v1, adapt using the [migration guide](../migrate-v1-to-v2.md).
 
 ## Disclaimer
 
@@ -8,20 +8,24 @@ This project is not affiliated with, endorsed by, or sponsored by DeepSeek.
 
 ## Example
 
-```json
+```jsonc
 {
-  "provider": {
+  "$schema": "https://opencode.ai/config.json",
+  "plugins": [
+    "opencode-models-discovery@2.0.0"
+  ],
+  "providers": {
     "deepseek": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "DeepSeek",
-      "options": {
+      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "settings": {
         "baseURL": "https://api.deepseek.com/",
+        // Optional: omit if managing credentials interactively via OpenCode '/connect'
+        "apiKey": "example_api_key",
         "modelsDiscovery": {
-          "endpoint": "/models",
+          "endpoint": "/models", // DeepSeek uses /models instead of /v1/models
           "modelInfoFormat": "models.dev"
         }
-      },
-      "models": {}
+      }
     }
   }
 }
