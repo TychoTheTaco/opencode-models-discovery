@@ -69,7 +69,6 @@ export function createProviderController(
             ...Provider.Info.empty(providerID),
             name: provider.name ?? provider.id,
             package: provider.package,
-            settings: provider.settings,
             headers: authHeaders,
             integrationID: targetIntegrationID as never,
             activation: "enabled",

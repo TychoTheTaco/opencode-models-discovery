@@ -2,9 +2,23 @@
 
 This directory contains community-maintained provider configuration examples for `opencode-models-discovery`.
 
-Examples currently use the OpenCode v1 configuration shape. OpenCode v2 support is currently in beta and uses `plugins`, `providers`, `package`, and `settings`; adapt examples using the [configuration guide](../configuration.md#opencode-v2-configuration-beta-support).
+Examples use the primary OpenCode v2 configuration shape (`plugins`, `providers`, `package`, and `settings`). For legacy OpenCode v1 users, adapt examples using the [configuration migration guide](../migrate-v1-to-v2.md).
 
 Examples may include provider declarations, non-standard `modelsDiscovery.endpoint` values, provider-level `models.includeBy` and `models.excludeBy` raw-field filters using `equals` or `match`, metadata enrichment options, and notes about provider-specific behavior. Provider-level `models.includeRegex` and `models.excludeRegex` are supported as id-only shortcuts, but examples should prefer `includeBy` and `excludeBy`.
+
+## Self-Hosted Engines, Gateways & Metadata Enrichers
+
+For local inference engines, self-hosted gateways, and metadata enrichment formats, see the comprehensive [Model Metadata Enrichment](../configuration.md#model-metadata-enrichment) documentation in `docs/configuration.md`. It provides configuration examples and capability mapping details for:
+
+- **AIProxy**: [AIProxy Metadata](../configuration.md#aiproxy-metadata) (`modelInfoFormat: "aiproxy"`)
+- **Bifrost**: [Bifrost Model Info](../configuration.md#bifrost-model-info) (`modelInfoFormat: "bifrost"`)
+- **LiteLLM**: [LiteLLM Model Info](../configuration.md#litellm-model-info) (`modelInfoFormat: "litellm"`)
+- **LM Studio**: [LM Studio Model Info](../configuration.md#lm-studio-model-info) (`modelInfoFormat: "lmstudio"`)
+- **llama-swap**: [llama-swap Model Info](../configuration.md#llama-swap-model-info) (`modelInfoFormat: "llama-swap"`)
+- **models.dev**: [models.dev Metadata](../configuration.md#modelsdev-metadata) (`modelInfoFormat: "models.dev"`)
+- **OmniRoute**: [OmniRoute Model Info](../configuration.md#omniroute-model-info) (`modelInfoFormat: "omniroute"`)
+- **OpenRouter**: [OpenRouter Model Info](../configuration.md#openrouter-model-info) (`modelInfoFormat: "openrouter"`)
+- **vLLM**: [vLLM Model Info](../configuration.md#vllm-model-info) (`modelInfoFormat: "vllm"`)
 
 ## Disclaimer
 
@@ -16,7 +30,7 @@ Examples are not security, legal, compliance, or purchasing advice.
 
 Do not paste secrets into public issues or pull requests. Configure provider credentials with OpenCode `/connect` when possible, or through local private config.
 
-## Examples
+## Community Provider Examples
 
 - [A2Agent](a2agent.md)
 - [AI-ROUTER](ai-router.md)
@@ -35,7 +49,7 @@ Do not include unrelated changes in provider example PRs. In particular, do not 
 
 Each example should:
 
-- Use provider-level `provider.<id>.options.modelsDiscovery` config for OpenCode v1. OpenCode v2 examples must use `providers.<id>.settings.modelsDiscovery`.
+- Prefer the primary OpenCode v2 shape (`providers.<id>.settings.modelsDiscovery`).
 - Prefer `models.includeBy` and `models.excludeBy` over `includeRegex` and `excludeRegex`.
 - Avoid secrets, tokens, API keys, account IDs, or private URLs.
 - Include a provider-specific disclaimer that this project is not affiliated with, endorsed by, or sponsored by that provider.

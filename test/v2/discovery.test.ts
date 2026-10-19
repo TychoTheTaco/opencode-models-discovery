@@ -156,4 +156,74 @@ describe("V2 provider discovery", () => {
     expect(inventory.has("unavailable")).toBe(false)
     expect(inventory.get("local")?.get("qwen-available")?.modelID).toBe("qwen-available")
   })
+
+  it("logs helpful warning when models request fails with non-ok status", async () => {
+    const logger = { warn: vi.fn() }
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+      statusText: "Not Found",
+    })
+
+    const inventory = await discoverInventory([
+      { id: "my-provider", package: "@opencode-ai/ai/providers/openai-compatible", settings: { baseURL: "https://example.com/api" } },
+    ], new Map([
+      ["my-provider", parseProviderDiscoveryOptions({ enabled: true, endpoint: "/models" })!],
+    ]), fetcher, undefined, { logger })
+
+    expect(inventory.has("my-provider")).toBe(false)
+    expect(logger.warn).toHaveBeenCalledWith(
+      'Model discovery request failed for provider "my-provider"',
+      expect.objectContaining({
+        provider: "my-provider",
+        url: "https://example.com/models",
+        status: 404,
+        statusText: "Not Found",
+      }),
+    )
+  })
+
+  it("logs warning when models endpoint returns non-array data payload", async () => {
+    const logger = { warn: vi.fn() }
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ error: "Endpoint not supported" }),
+    })
+
+    const inventory = await discoverInventory([
+      { id: "my-provider", package: "@opencode-ai/ai/providers/openai-compatible", settings: { baseURL: "https://example.com/api" } },
+    ], new Map([
+      ["my-provider", parseProviderDiscoveryOptions({ enabled: true, endpoint: "/models" })!],
+    ]), fetcher, undefined, { logger })
+
+    expect(inventory.has("my-provider")).toBe(false)
+    expect(logger.warn).toHaveBeenCalledWith(
+      'Model discovery returned invalid payload for provider "my-provider": expected array in "data" property',
+      expect.objectContaining({
+        provider: "my-provider",
+        url: "https://example.com/models",
+      }),
+    )
+  })
+
+  it("logs warning when models endpoint throws network error", async () => {
+    const logger = { warn: vi.fn() }
+    const fetcher = vi.fn().mockRejectedValue(new Error("fetch failed: connection refused"))
+
+    const inventory = await discoverInventory([
+      { id: "my-provider", package: "@opencode-ai/ai/providers/openai-compatible", settings: { baseURL: "https://example.com/api" } },
+    ], new Map([
+      ["my-provider", parseProviderDiscoveryOptions({ enabled: true })!],
+    ]), fetcher, undefined, { logger })
+
+    expect(inventory.has("my-provider")).toBe(false)
+    expect(logger.warn).toHaveBeenCalledWith(
+      'Model discovery error for provider "my-provider"',
+      expect.objectContaining({
+        provider: "my-provider",
+        url: "https://example.com/v1/models",
+        error: "fetch failed: connection refused",
+      }),
+    )
+  })
 })

@@ -37,12 +37,33 @@ describe("V2 provider controller", () => {
 
     controller.transform(editor as never)
     expect(added[0]?.models).toEqual([])
+    expect(added[0]?.info.settings).toBeUndefined()
 
     await controller.replaceInventory(inventory())
     await controller.replaceInventory(inventory("replacement-model"))
 
     expect(reload).toHaveBeenCalledTimes(2)
     expect(controller.status()).toEqual({ providers: 1, models: 1 })
+  })
+
+  it("omits provider settings in editor.add to prevent stale settings resurrection on config reload", () => {
+    const added: Array<{ info: Record<string, unknown>; models: unknown[] }> = []
+    const controller = createProviderController(
+      { provider: { reload: vi.fn() } } as never,
+      [provider("test-provider")],
+      (id) => `integration.${id}`,
+    )
+    const editor = {
+      get: vi.fn().mockReturnValue(undefined),
+      add: vi.fn((definition) => added.push(definition)),
+      update: vi.fn(),
+      models: { set: vi.fn() },
+    }
+
+    controller.transform(editor as never)
+    expect(added).toHaveLength(1)
+    expect(added[0]?.info.id).toBe("test-provider")
+    expect(added[0]?.info.settings).toBeUndefined()
   })
 
   it("preserves existing source models when adding discovered models", async () => {

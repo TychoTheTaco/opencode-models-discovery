@@ -28,10 +28,9 @@ Originally inspired by [opencode-lmstudio](https://github.com/agustif/opencode-l
 
 OpenCode v2 uses **`plugins`** (an array of package names) and **`providers`** (a map). Configure discovery under `providers.<id>.settings.modelsDiscovery`; it runs only when `enabled` is explicitly `true`. OpenCode v1 instead uses `plugin`, `provider`, and `options` (see [OpenCode v1 quick start](#opencode-v1-quick-start)).
 
-Add the plugin package to your OpenCode v2 `opencode.json`. OpenCode resolves
-and loads the package automatically:
+Add the plugin package to your OpenCode v2 `opencode.json` (or `opencode.jsonc`). OpenCode resolves and loads the package automatically:
 
-```json
+```jsonc
 {
   "$schema": "https://opencode.ai/config.json",
   "plugins": [
@@ -43,7 +42,8 @@ and loads the package automatically:
       "package": "@opencode-ai/ai/providers/openai-compatible",
       "settings": {
         "baseURL": "https://gateway.example.com/v1",
-        "apiKey": "${GATEWAY_API_KEY}",
+        // Optional: omit if managing credentials interactively via OpenCode '/connect'
+        "apiKey": "{env:GATEWAY_API_KEY}",
         "modelsDiscovery": {
           "enabled": true,
           "modelInfoFormat": "models.dev",
@@ -63,7 +63,7 @@ and loads the package automatically:
 }
 ```
 
-Set `GATEWAY_API_KEY` in the environment used to start OpenCode; the `${GATEWAY_API_KEY}` placeholder is resolved by the OpenCode v2 host. Alternatively, omit `apiKey` from `opencode.json` and configure credentials interactively with OpenCode's native `/connect` command. If your endpoint needs no credential, omit `apiKey`. Use the same provider package shown above for OpenAI-compatible discovery. The provider needs a `baseURL`; the plugin fetches its models from `/v1/models` by default (relative to the URL's **origin**). For providers that expose `/models` instead, set `"endpoint": "/models"` inside `modelsDiscovery`.
+Set `GATEWAY_API_KEY` in the environment used to start OpenCode; the `{env:GATEWAY_API_KEY}` placeholder is resolved by the OpenCode v2 host. Alternatively, omit `apiKey` from `opencode.json` and configure credentials interactively with OpenCode's native `/connect` command. If your endpoint needs no credential, omit `apiKey`. Use the same provider package shown above for OpenAI-compatible discovery. The provider needs a `baseURL`; the plugin fetches its models from `/v1/models` by default (relative to the URL's **origin**). For providers that expose `/models` instead, set `"endpoint": "/models"` inside `modelsDiscovery`.
 
 ### Credentials
 
@@ -80,7 +80,7 @@ events without requiring a restart.
 See [Connect and Auth Documentation](docs/connect-and-auth.md) for credential
 resolution, lifecycle handling, and security details.
 
-`modelInfoFormat` and `smartModelName` are optional: without them, discovered names remain the model IDs and no external metadata is fetched. Supported metadata formats are `aiproxy`, `models.dev`, `bifrost`, `litellm`, `vllm`, `lmstudio`, `llama-swap`, and `omniroute`. `models.dev` fetches `https://models.dev/models.json` by default; `modelInfoEndpoint` can override the catalog URL. The `aiproxy` format composes that catalog with inline metadata from AIProxy's model list. `filterNonChat` defaults to `true`; it can filter non-chat models when the selected metadata source supplies that information. `timeoutMs` defaults to 5000 ms. Models returned by discovery are added alongside explicitly configured models.
+`modelInfoFormat` and `smartModelName` are optional: without them, discovered names remain the model IDs and no external metadata is fetched. Supported metadata formats are `aiproxy`, `models.dev`, `bifrost`, `litellm`, `vllm`, `lmstudio`, `llama-swap`, `omniroute`, and `openrouter`. `models.dev` fetches `https://models.dev/models.json` by default; `modelInfoEndpoint` can override the catalog URL. The `aiproxy` format composes that catalog with inline metadata from AIProxy's model list. The `openrouter` format reads OpenRouter's inline `/v1/models` metadata without another request. `filterNonChat` defaults to `true`; it can filter non-chat models when the selected metadata source supplies that information. `timeoutMs` defaults to 5000 ms. Models returned by discovery are added alongside explicitly configured models.
 
 For a local build, run `npm run compile` and replace the package value above with `"file:///absolute/path/to/opencode-models-discovery/dist"`. OpenCode v2 expects a **directory**, not a path to `index.js` or `server.js`. After rebuilding plugin code, run `opencode service restart` so the background service loads the new bundle. Discovery runs when the plugin initializes. The native TUI commands are `/models-discovery-refresh` and `/models-discovery-console`; the console combines Provider → model → model details browsing with cache inspection and clearing. Use `/models-discovery-console status --provider <provider-id>` to filter the browser. The OpenCode v2 agent tools `models_discovery_refresh` and `models_discovery_status` remain available for automation. Pass `rawCache: true` to `models_discovery_status` to include cached raw models and enrichment results.
 
@@ -260,7 +260,7 @@ For AIProxy's inline model-list metadata, use `modelInfoFormat: "aiproxy"`:
 {
   "providers": {
     "aiproxy": {
-      "package": "aisdk:@ai-sdk/openai-compatible",
+      "package": "@opencode-ai/ai/providers/openai-compatible",
       "settings": {
         "baseURL": "https://aiproxy.example/api",
         "apiKey": "{env:AIPROXY_API_KEY}",
@@ -303,6 +303,17 @@ For LiteLLM-compatible model info endpoints, `/v1/model/info` is used by default
 }
 ```
 
+For OpenRouter's inline `/v1/models` metadata, without another metadata request:
+
+```json
+{
+  "modelsDiscovery": {
+    "enabled": true,
+    "modelInfoFormat": "openrouter"
+  }
+}
+```
+
 For Bifrost AI Gateway's inline `/v1/models` metadata, without another metadata request:
 
 ```json
@@ -325,6 +336,17 @@ For LM Studio 0.4.0+'s native v1 REST inventory endpoint:
 }
 ```
 
+For vLLM's inline `max_model_len` metadata, without another metadata request:
+
+```json
+{
+  "modelsDiscovery": {
+    "enabled": true,
+    "modelInfoFormat": "vllm"
+  }
+}
+```
+
 For llama-swap's inline `/v1/models` metadata, without another metadata request:
 
 ```json
@@ -332,6 +354,17 @@ For llama-swap's inline `/v1/models` metadata, without another metadata request:
   "modelsDiscovery": {
     "enabled": true,
     "modelInfoFormat": "llama-swap"
+  }
+}
+```
+
+For OmniRoute's inline `/v1/models` metadata, without another metadata request:
+
+```json
+{
+  "modelsDiscovery": {
+    "enabled": true,
+    "modelInfoFormat": "omniroute"
   }
 }
 ```

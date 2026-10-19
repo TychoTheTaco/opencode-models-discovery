@@ -73,7 +73,8 @@ export async function resolveModelInfoEnricher(
     format === ModelInfoFormat.Bifrost ||
     format === ModelInfoFormat.VLLM ||
     format === ModelInfoFormat.LlamaSwap ||
-    format === ModelInfoFormat.OmniRoute
+    format === ModelInfoFormat.OmniRoute ||
+    format === ModelInfoFormat.OpenRouter
   ) {
     return createModelEnricher(format, null)
   }

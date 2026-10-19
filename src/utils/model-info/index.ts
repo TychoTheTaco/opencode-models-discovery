@@ -6,6 +6,7 @@ import { createModelsDevEnricher } from './models-dev'
 import { createOmniRouteEnricher } from './omniroute'
 import { createVLLMEnricher } from './vllm'
 import { createAIProxyEnricher } from './aiproxy'
+import { createOpenRouterEnricher } from './openrouter'
 import { ModelInfoFormat } from '../../types/plugin-config'
 import type { ModelEnricher, ModelEnrichmentContext } from '../../core/model-enrichment'
 
@@ -20,6 +21,7 @@ const MODEL_ENRICHERS: Partial<Record<ModelInfoFormat, ModelEnricherFactory>> = 
   [ModelInfoFormat.LMStudio]: (data) => createLMStudioEnricher(data),
   [ModelInfoFormat.LiteLLM]: (data) => createLiteLLMEnricher(data),
   [ModelInfoFormat.AIProxy]: (data) => createAIProxyEnricher(data),
+  [ModelInfoFormat.OpenRouter]: (data) => createOpenRouterEnricher(data),
 }
 
 /** Creates the neutral contract used by the shared discovery pipeline. */
